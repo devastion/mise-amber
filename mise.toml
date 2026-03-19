@@ -1,0 +1,68 @@
+[env]
+MISE_USE_VERSIONS_HOST = false
+
+[tools]
+actionlint = "latest"
+hk = "latest"
+lua = "5.4"
+lua-language-server = "latest"
+pkl = "latest"
+stylua = "latest"
+
+[tasks.format]
+description = "Format Lua scripts"
+run = "stylua metadata.lua hooks/"
+
+[tasks.lint]
+description = "Lint Lua scripts and GitHub Actions using hk"
+run = "hk check"
+
+[tasks.lint-fix]
+description = "Fix linting issues"
+run = "hk fix"
+
+[tasks.test]
+description = "Run plugin tests - install and execute tool"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+version="0.5.1-alpha"
+amber_version="amber@$version"
+
+mise plugin link --force amber .
+mise cache clear
+mise install $amber_version
+
+# Capture and display the output while also verifying it
+amber_version_output=$(mise exec "$amber_version" -- amber --version)
+echo "$amber_version output: $amber_version_output"
+
+if echo "$amber_version_output" | grep -q "amber $version"; then
+  echo "✓ Tests passed"
+else
+  echo "✗ Test failed: expected version amber $version"
+  exit 1
+fi
+
+nightly_version="nightly"
+temp_dir=$(mktemp -d)
+
+echo "$nightly_version" >"$temp_dir/.amber-version"
+
+cd "$temp_dir"
+mise use amber
+amber_nightly_version_output=$(amber --version)
+echo "amber nightly output: $amber_nightly_version_output"
+
+if [ "$amber_nightly_version_output" != "$amber_version_output" ]; then
+  echo "✓ Nightly Tests passed"
+else
+  echo "✗ Test failed: expected version amber $amber_version_output to differ from nightly version $amber_nightly_version_output"
+  exit 1
+fi
+'''
+
+[tasks.ci]
+description = "Run all CI checks"
+depends = ["lint", "test"]
