@@ -1,5 +1,8 @@
 # `mise-amber`
 
+> [!CAUTION]
+> Just use `mise use -g github:amber-lang/amber` (or `mise use -g github:amber-lang/amber@nightly`) to directly use github backend and install mise from official github repository.
+
 [Mise](https://github.com/jdx/mise) plugin that brings [Amber Lang](https://amber-lang.com/).
 
 <!-- toc -->
